@@ -142,18 +142,69 @@ a:hover {
 
 /* Animaciones */
 @keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.05); opacity: 0.8; }
   100% { transform: scale(1); }
+}
+
+/* Responsividad Mobile-First / Tablets */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 16px;
+  }
+  
+  .navbar {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .desktop-menu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .desktop-menu.hidden-mobile {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .btn-neon {
+    width: 100%;
+    text-align: center;
+  }
+
+  .glass-panel {
+    padding: 16px; /* Menos padding en celular */
+  }
+}
+
+.mobile-menu-btn {
+  display: none; /* Oculto en PC */
+}
+
+/* Modificadores extra */
+.flex-between {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100%;
 }

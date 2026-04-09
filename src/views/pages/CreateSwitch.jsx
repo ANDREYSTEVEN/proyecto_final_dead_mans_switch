@@ -1,17 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { createSwitch } from '../../controllers/switchController';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { createSwitch, updateSwitch, getSwitchById } from '../../controllers/switchController';
 import { useToast } from '../components/ToastContext';
 
 export default function CreateSwitch() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const addToast = useToast();
+  
+  const isEditing = !!id;
+
   const [formData, setFormData] = useState({
     name: '',
     alertEmail: '',
     durationHours: 24
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(isEditing);
+
+  useEffect(() => {
+     if (isEditing) {
+         getSwitchById(id).then(sw => {
+             if(sw) {
+                 // Convertimos ms restantes a horas para el input de formulario
+                 const diff = sw.targetTime - Date.now();
+                 const currentHours = Math.max(1, Math.floor(diff / 3600000));
+                 setFormData({ name: sw.name, alertEmail: sw.alertEmail, durationHours: currentHours });
+             } else {
+                 addToast("El Switch solicitado no existe", "error");
+                 navigate('/');
+             }
+             setLoading(false);
+         });
+     }
+  }, [id, navigate, addToast, isEditing]);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,21 +44,29 @@ export default function CreateSwitch() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await createSwitch(formData);
+    if (isEditing) {
+        await updateSwitch(id, formData);
+        addToast("Interruptor actualizado exitosamente.", "success");
+    } else {
+        await createSwitch(formData);
+        addToast("Nuevo interruptor enlazado a la red.", "success");
+    }
     setLoading(false);
-    addToast("Nuevo interruptor enlazado a la red.", "success");
-    navigate('/'); // Vuelve al inicio después de crear
+    navigate('/'); 
   };
 
   return (
     <div style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
       <header style={{ marginBottom: '2rem' }}>
-        <h1>Crear Nuevo Interruptor</h1>
+        <h1>{isEditing ? 'Modificar Protocolo' : 'Crear Nuevo Interruptor'}</h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
-          Configura un nuevo Dead Man's Switch. Será conectado a tu cuenta principal.
+          {isEditing ? 'Edita los parámetros de supervivencia de este switch.' : 'Configura un nuevo Dead Man\'s Switch.'}
         </p>
       </header>
 
+      {loading ? (
+          <h2 style={{ color: 'var(--neon-blue)', textAlign: 'center' }}>Cargando datos...</h2>
+      ) : (
       <form className="glass-panel" onSubmit={handleSubmit}>
         
         <div style={{ marginBottom: '1.5rem' }}>
@@ -45,21 +74,9 @@ export default function CreateSwitch() {
             Nombre del Interruptor
           </label>
           <input 
-            type="text" 
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
+            type="text" name="name" value={formData.name} onChange={handleChange} required
             placeholder="Ej. Bóveda Fuerte"
-            style={{ 
-                width: '100%', 
-                padding: '12px', 
-                borderRadius: '8px', 
-                border: '1px solid rgba(255,255,255,0.2)', 
-                background: 'rgba(0,0,0,0.5)',
-                color: 'white',
-                fontFamily: 'var(--font-primary)'
-            }} 
+            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', color: 'white'}} 
           />
         </div>
 
@@ -68,21 +85,9 @@ export default function CreateSwitch() {
             Correo de Rescate / Emisor
           </label>
           <input 
-            type="email" 
-            name="alertEmail"
-            value={formData.alertEmail}
-            onChange={handleChange}
-            required
+            type="email" name="alertEmail" value={formData.alertEmail} onChange={handleChange} required
             placeholder="familiar@correo.com"
-            style={{ 
-                width: '100%', 
-                padding: '12px', 
-                borderRadius: '8px', 
-                border: '1px solid rgba(255,255,255,0.2)', 
-                background: 'rgba(0,0,0,0.5)',
-                color: 'white',
-                fontFamily: 'var(--font-primary)'
-            }} 
+            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', color: 'white'}} 
           />
         </div>
 
@@ -91,40 +96,21 @@ export default function CreateSwitch() {
             Frecuencia de Check-in (Horas)
           </label>
           <input 
-            type="number" 
-            name="durationHours"
-            value={formData.durationHours}
-            onChange={handleChange}
-            min="1"
-            max="720"
-            required
-            style={{ 
-                width: '100%', 
-                padding: '12px', 
-                borderRadius: '8px', 
-                border: '1px solid rgba(255,255,255,0.2)', 
-                background: 'rgba(0,0,0,0.5)',
-                color: 'white',
-                fontFamily: 'var(--font-primary)'
-            }} 
+            type="number" name="durationHours" value={formData.durationHours} onChange={handleChange} min="1" max="720" required
+            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(0,0,0,0.5)', color: 'white'}} 
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
-          <button 
-             type="button" 
-             className="btn-neon" 
-             onClick={() => navigate('/')}
-             style={{ borderColor: 'var(--text-secondary)', color: 'var(--text-secondary)' }}
-          >
+        <div style={{ display: 'flex', gap: '16px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+          <button type="button" className="btn-neon" onClick={() => navigate('/')} style={{ borderColor: 'var(--text-secondary)', color: 'var(--text-secondary)', flexGrow: 1 }}>
             Cancelar
           </button>
-          <button type="submit" className="btn-neon btn-neon-green" disabled={loading}>
-            {loading ? 'Creando...' : 'Guardar y Activar'}
+          <button type="submit" className="btn-neon btn-neon-green" disabled={loading} style={{ flexGrow: 1 }}>
+            {isEditing ? 'Sobrescribir' : 'Guardar y Activar'}
           </button>
         </div>
-
       </form>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getSwitches, formatTimeLeft, checkInSwitch } from '../../controllers/switchController';
+import { useNavigate } from 'react-router-dom';
+import { getSwitches, formatTimeLeft, checkInSwitch, deleteSwitch } from '../../controllers/switchController';
 import { useToast } from '../components/ToastContext';
 
 export default function Dashboard() {
@@ -7,15 +8,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
   const addToast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchSwitches = async () => {
-      const data = await getSwitches();
-      setSwitches(data);
-      setLoading(false);
-    };
     fetchSwitches();
   }, []);
+
+  const fetchSwitches = async () => {
+    const data = await getSwitches();
+    setSwitches(data);
+    setLoading(false);
+  };
 
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -32,12 +35,22 @@ export default function Dashboard() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm("¿Seguro que deseas desactivar irremediablemente este Switch?")) {
+        const success = await deleteSwitch(id);
+        if (success) {
+            addToast("Switch deshabilitado.", "error");
+            fetchSwitches();
+        }
+    }
+  };
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '2rem' }}>
       <header>
-        <h1>Tus Interruptores Activos</h1>
+        <h1>Interruptores Activos</h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
-           Debes realizar check-in antes de que el contador llegue a cero.
+           Realiza check-in antes de que el contador llegue a cero.
         </p>
       </header>
 
@@ -64,17 +77,11 @@ export default function Dashboard() {
                   <h3 style={{ fontSize: '1.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={sw.name}>
                     {sw.name}
                   </h3>
-                  <span style={{ 
-                    fontSize: '0.8rem', 
-                    padding: '4px 8px', 
-                    borderRadius: '12px', 
-                    backgroundColor: timeData.status === 'ACTIVE' ? 'rgba(0,255,136,0.1)' : 'rgba(255,51,102,0.1)',
-                    color: timeData.status === 'ACTIVE' ? 'var(--neon-green)' : 'var(--neon-red)',
-                    fontWeight: 'bold',
-                    boxShadow: timeData.status === 'CRITICAL' ? '0 0 10px rgba(255,51,102,0.5)' : 'none'
-                  }}>
-                    {timeData.status}
-                  </span>
+                  
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                      <button onClick={() => navigate(`/edit/${sw.id}`)} style={{ background: 'none', border: 'none', color: 'var(--neon-blue)', cursor: 'pointer', fontSize: '1.2rem' }}>⚙️</button>
+                      <button onClick={() => handleDelete(sw.id)} style={{ background: 'none', border: 'none', color: 'var(--neon-red)', cursor: 'pointer', fontSize: '1.2rem' }}>🗑️</button>
+                  </div>
                 </div>
                 
                 <div style={{ margin: '24px 0' }}>
