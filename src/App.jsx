@@ -25,35 +25,37 @@ function Navigation() {
   };
 
   return (
-    <nav className="navbar">
-      <div className="flex-between">
-          <Link to="/" className="logo">
-            <div style={{ width: '12px', height: '12px', backgroundColor: 'var(--neon-red)', borderRadius: '50%', boxShadow: '0 0 8px var(--neon-red)' }}></div>
-            DeadMan<span>Switch</span>
-          </Link>
-          
-          {user && (
-              <button 
-                className="mobile-menu-btn" 
-                onClick={() => setMenuOpen(!menuOpen)}
-              >
-                  {menuOpen ? '✖' : '☰'}
-              </button>
-          )}
-      </div>
-
-      {user ? (
-        <div className={`desktop-menu ${!menuOpen ? 'hidden-mobile' : ''}`}>
-          <Link to="/logs" className="btn-neon" style={{ marginRight: '8px', borderColor: 'var(--text-secondary)', color: 'var(--text-primary)' }} onClick={() => setMenuOpen(false)}>Auditoría</Link>
-          <Link to="/analytics" className="btn-neon" style={{ marginRight: '8px', borderColor: 'var(--neon-blue)', color: 'var(--neon-blue)' }} onClick={() => setMenuOpen(false)}>Analíticas</Link>
-          <Link to="/settings" className="btn-neon" style={{ marginRight: '8px', borderColor: 'var(--text-secondary)', color: 'var(--text-primary)' }} onClick={() => setMenuOpen(false)}>Configuración</Link>
-          <Link to="/create" className="btn-neon btn-neon-green" style={{ marginRight: '8px' }} onClick={() => setMenuOpen(false)}>Nuevo Switch</Link>
-          <button onClick={handleLogout} className="btn-neon btn-neon-red">Salir</button>
-        </div>
-      ) : (
-        <span style={{color: 'var(--text-secondary)'}}>Modo Bloqueado</span>
+    <>
+      {user && (
+        <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? '✖' : '☰'}
+        </button>
       )}
-    </nav>
+
+      <aside className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <Link to="/" className="logo" onClick={() => setMenuOpen(false)}>
+          <div style={{ width: '14px', height: '14px', backgroundColor: 'var(--neon-red)', borderRadius: '50%', boxShadow: '0 0 8px var(--neon-red)' }}></div>
+          DeadMan<span style={{display:'block', marginLeft: '22px'}}>Switch</span>
+        </Link>
+        
+        {user ? (
+          <div className="sidebar-menu">
+            <Link to="/create" className="btn-neon btn-neon-green" onClick={() => setMenuOpen(false)}>+ Nuevo Switch</Link>
+            <div style={{borderBottom: '1px solid rgba(255,255,255,0.1)', margin: '16px 0'}}></div>
+            <Link to="/" className="sidebar-link" onClick={() => setMenuOpen(false)}>🎛 Dashboard</Link>
+            <Link to="/logs" className="sidebar-link" onClick={() => setMenuOpen(false)}>📋 Auditoría</Link>
+            <Link to="/analytics" className="sidebar-link" onClick={() => setMenuOpen(false)}>📈 Analíticas</Link>
+            <Link to="/settings" className="sidebar-link" onClick={() => setMenuOpen(false)}>⚙️ Configuración</Link>
+            <div style={{flexGrow: 1}}></div>
+            <button onClick={handleLogout} className="btn-neon btn-neon-red" style={{marginTop: 'auto'}}>Salir</button>
+          </div>
+        ) : (
+          <div style={{color: 'var(--text-secondary)', marginTop: '2rem', textAlign: 'center'}}>
+            Modo Bloqueado
+          </div>
+        )}
+      </aside>
+    </>
   );
 }
 
@@ -63,19 +65,20 @@ function App() {
       <ToastProvider>
         <Router>
           <IdleStateDetector />
-          <div className="app-container">
+          <div className="dashboard-layout">
             <Navigation />
 
-            {/* Sistema de Rutas Protegidas y Públicas */}
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/create" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
-              <Route path="/edit/:id" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
-              <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-            </Routes>
+            <main className="main-content">
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/create" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
+                <Route path="/edit/:id" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
+                <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+              </Routes>
+            </main>
           </div>
         </Router>
       </ToastProvider>
