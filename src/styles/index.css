@@ -1,0 +1,159 @@
+/* Importación de Roboto e Inter desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap');
+
+:root {
+  /* Paleta Dark Premium */
+  --bg-dark: #0a0a0c;
+  --bg-card: rgba(20, 20, 24, 0.6);
+  --text-primary: #f0f0f5;
+  --text-secondary: #9aa0a6;
+  
+  /* Neones y Acentos */
+  --neon-green: #00ff88;
+  --neon-green-glow: rgba(0, 255, 136, 0.4);
+  --neon-red: #ff3366;
+  --neon-red-glow: rgba(255, 51, 102, 0.4);
+  --neon-blue: #00e5ff;
+  
+  /* Glassmorphism utils */
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(12px);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  /* Tipografía */
+  --font-primary: 'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Patrón de fondo sutil (Grid radiante) */
+  background-image: radial-gradient(circle at 50% 0%, rgba(20, 20, 25, 1) 0%, rgba(10, 10, 12, 1) 70%),
+                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--neon-blue);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #fff;
+}
+
+/* Glassmorphism Base Component */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: 16px;
+  box-shadow: var(--glass-shadow);
+  padding: 24px;
+}
+
+/* Botón Premium */
+.btn-neon {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--text-secondary);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-family: var(--font-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-neon-green {
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+}
+
+.btn-neon-green:hover {
+  background-color: var(--neon-green);
+  color: #000;
+  box-shadow: 0 0 15px var(--neon-green-glow);
+}
+
+.btn-neon-red {
+  border-color: var(--neon-red);
+  color: var(--neon-red);
+}
+
+.btn-neon-red:hover {
+  background-color: var(--neon-red);
+  color: #fff;
+  box-shadow: 0 0 15px var(--neon-red-glow);
+}
+
+/* Layout Utilidades */
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 2rem;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo span {
+  color: var(--neon-red);
+}
+
+/* Animaciones */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); }
+}
