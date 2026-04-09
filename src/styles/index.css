@@ -1,35 +1,36 @@
-/* Importación de Roboto e Inter desde Google Fonts */
+/* Importación de Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Outfit:wght@400;600;800&display=swap');
 
 :root {
-  /* Paleta Dark Premium */
-  --bg-dark: #0a0a0c;
-  --bg-card: rgba(20, 20, 24, 0.6);
-  --text-primary: #f0f0f5;
-  --text-secondary: #9aa0a6;
+  /* Paleta Black Premium Sci-Fi */
+  --bg-dark: #020204;
+  --bg-card: rgba(10, 10, 16, 0.7);
+  --text-primary: #e0e5ff;
+  --text-secondary: #7a82a6;
   
-  /* Neones y Acentos */
+  /* Neones Vívidos (Cyberpunk vibe) */
   --neon-green: #00ff88;
-  --neon-green-glow: rgba(0, 255, 136, 0.4);
-  --neon-red: #ff3366;
-  --neon-red-glow: rgba(255, 51, 102, 0.4);
+  --neon-green-glow: rgba(0, 255, 136, 0.3);
+  --neon-green-edge: #00cc6a;
+  
+  --neon-red: #ff2a55;
+  --neon-red-glow: rgba(255, 42, 85, 0.3);
+  --neon-red-edge: #cc2244;
+
   --neon-blue: #00e5ff;
   
-  /* Glassmorphism utils */
-  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
-  --glass-blur: blur(12px);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  /* Glassmorphism utils reforzados 3D */
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+  --glass-border-light: 1px solid rgba(255, 255, 255, 0.25);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);
   
   /* Tipografía */
   --font-primary: 'Inter', sans-serif;
   --font-heading: 'Outfit', sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   background-color: var(--bg-dark);
@@ -37,205 +38,153 @@ body {
   font-family: var(--font-primary);
   min-height: 100vh;
   overflow-x: hidden;
-  /* Patrón de fondo sutil (Grid radiante) */
-  background-image: radial-gradient(circle at 50% 0%, rgba(20, 20, 25, 1) 0%, rgba(10, 10, 12, 1) 70%),
-                    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 100% 100%, 40px 40px, 40px 40px;
+  position: relative;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  letter-spacing: -0.02em;
+/* -------------------------------------
+   FONDO 3D ANIMADO (Perspectiva Sci-Fi) 
+   -------------------------------------*/
+body::before {
+  content: "";
+  position: fixed;
+  bottom: -20vh; 
+  left: -50vw; 
+  width: 200vw; 
+  height: 50vh;
+  background-image: 
+    linear-gradient(rgba(0, 229, 255, 0.15) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.15) 2px, transparent 2px);
+  background-size: 60px 60px;
+  /* Transformamos la cuadricula plana en un piso 3D que se extiende hacia el horizonte */
+  transform: perspective(600px) rotateX(75deg);
+  animation: gridMove 2s linear infinite;
+  z-index: -1;
+  /* Degradado para disipar la cuadrícula en la oscuridad */
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
 }
 
-a {
-  color: var(--neon-blue);
-  text-decoration: none;
-  transition: color 0.3s ease;
+@keyframes gridMove {
+  0% { transform: perspective(600px) rotateX(75deg) translateY(0); }
+  100% { transform: perspective(600px) rotateX(75deg) translateY(60px); }
 }
 
-a:hover {
-  color: #fff;
-}
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); letter-spacing: -0.02em; }
+a { color: var(--neon-blue); text-decoration: none; transition: color 0.3s ease; }
+a:hover { color: #fff; text-shadow: 0 0 8px var(--neon-blue); }
 
-/* Glassmorphism Base Component */
+/* -------------------------------------
+   PANELES TIPO HOLOGRAMA
+   -------------------------------------*/
 .glass-panel {
   background: var(--bg-card);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: var(--glass-border);
-  border-radius: 16px;
-  box-shadow: var(--glass-shadow);
+  border-top: var(--glass-border-light); /* Luz reflectiva falso 3D desde arriba */
+  border-radius: 12px;
+  box-shadow: var(--glass-shadow), inset 0 2px 20px rgba(255,255,255,0.02);
   padding: 24px;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Botón Premium */
+.glass-panel:hover {
+  transform: translateY(-5px); /* Flotabilidad holográfica */
+}
+
+
+/* -------------------------------------
+   BOTONES 3D TACTICAL (SCI-FI)
+   -------------------------------------*/
 .btn-neon {
-  background: transparent;
+  background: rgba(0,0,0,0.6);
   color: var(--text-primary);
   border: 1px solid var(--text-secondary);
-  padding: 12px 24px;
+  padding: 14px 28px;
   border-radius: 8px;
   font-family: var(--font-primary);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
   position: relative;
-  overflow: hidden;
+  /* Genera un bloque sólido debajo haciéndolo parecer una tecla gruesa 3D */
+  box-shadow: 0 4px 0 var(--text-secondary), 0 8px 10px rgba(0,0,0,0.4);
+}
+
+.btn-neon:active {
+  transform: translateY(4px); /* Se hunde el botón realísticamente */
+  box-shadow: 0 0 0 transparent, 0 4px 10px rgba(0,0,0,0.4);
 }
 
 .btn-neon-green {
   border-color: var(--neon-green);
   color: var(--neon-green);
+  box-shadow: 0 4px 0 var(--neon-green-edge), 0 8px 15px var(--neon-green-glow);
 }
-
-.btn-neon-green:hover {
-  background-color: var(--neon-green);
-  color: #000;
-  box-shadow: 0 0 15px var(--neon-green-glow);
-}
+.btn-neon-green:hover { background-color: rgba(0,255,136,0.1); text-shadow: 0 0 8px var(--neon-green); }
 
 .btn-neon-red {
   border-color: var(--neon-red);
   color: var(--neon-red);
+  box-shadow: 0 4px 0 var(--neon-red-edge), 0 8px 15px var(--neon-red-glow);
 }
+.btn-neon-red:hover { background-color: rgba(255,42,85,0.1); text-shadow: 0 0 8px var(--neon-red); }
 
-.btn-neon-red:hover {
-  background-color: var(--neon-red);
-  color: #fff;
-  box-shadow: 0 0 15px var(--neon-red-glow);
-}
 
 /* Layout Utilidades - Dashboard Mode */
-.dashboard-layout {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-}
+.dashboard-layout { display: flex; min-height: 100vh; width: 100%; }
 
 .main-content {
-  flex-grow: 1;
-  padding: 32px;
-  overflow-y: auto;
-  max-width: 1200px; /* Para que no se estire demasiado en ultra-wide */
-  margin: 0 auto;
+  flex-grow: 1; padding: 32px; overflow-y: auto; max-width: 1200px; margin: 0 auto;
 }
 
 .sidebar {
   width: 250px;
-  background: var(--bg-card);
+  background: rgba(5,5,10,0.85); /* Sidebar más sólida */
   backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-right: var(--glass-border);
+  border-right: 1px solid rgba(0,229,255,0.2);
+  box-shadow: 5px 0 30px rgba(0,0,0,0.9);
   padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  transition: transform 0.3s ease;
-  z-index: 100;
+  display: flex; flex-direction: column; flex-shrink: 0;
+  transition: transform 0.3s ease; z-index: 100;
 }
 
-.sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  margin-top: 2rem;
-  gap: 12px;
-  flex-grow: 1;
-}
+.sidebar-menu { display: flex; flex-direction: column; margin-top: 2rem; gap: 12px; flex-grow: 1; }
 
 .sidebar-link {
-  color: var(--text-primary);
-  font-weight: 600;
-  padding: 12px 16px;
-  border-radius: 8px;
-  background: transparent;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  color: var(--text-secondary); font-weight: 600; padding: 12px 16px; border-radius: 8px;
+  background: transparent; transition: all 0.2s ease; border: 1px solid transparent;
 }
 
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.1);
-  color: #fff;
-  transform: translateX(4px);
+  background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3);
+  color: var(--neon-blue); transform: translateX(8px);
 }
 
-.logo {
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.logo span {
-  color: var(--neon-red);
-}
+.logo { font-family: var(--font-heading); font-size: 1.5rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+.logo span { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
 
 /* Animaciones */
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(100%); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); }
-}
+@keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,42,85, 0.7); } 70% { transform: scale(1.02); box-shadow: 0 0 0 15px rgba(255,42,85, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,42,85, 0); } }
 
 /* Responsividad Mobile-First / Tablets */
 .mobile-menu-btn {
-  display: none;
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  background: var(--bg-dark);
-  border: var(--glass-border);
-  border-radius: 8px;
-  color: white;
-  font-size: 24px;
-  width: 48px;
-  height: 48px;
-  cursor: pointer;
-  z-index: 999;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  display: none; position: fixed; top: 16px; right: 16px;
+  background: var(--bg-dark); border: var(--glass-border); border-radius: 8px;
+  color: var(--neon-blue); font-size: 24px; width: 48px; height: 48px;
+  cursor: pointer; z-index: 999; box-shadow: 0 4px 12px rgba(0,229,255,0.2);
 }
 
 @media (max-width: 768px) {
-  .dashboard-layout {
-    flex-direction: column;
-  }
-  
-  .main-content {
-    padding: 24px 16px;
-    padding-top: 80px; /* Espacio para el boton hamburgesa */
-  }
-
-  .mobile-menu-btn {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    transform: translateX(-100%);
-    box-shadow: 10px 0 30px rgba(0,0,0,0.8);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .glass-panel {
-    padding: 16px; 
-  }
+  .dashboard-layout { flex-direction: column; }
+  .main-content { padding: 24px 16px; padding-top: 80px; }
+  .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; }
+  .sidebar { position: fixed; top: 0; left: 0; height: 100vh; transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .glass-panel { padding: 16px; }
 }
+
+.flex-between { display: flex !important; justify-content: space-between !important; align-items: center !important; width: 100%; }
