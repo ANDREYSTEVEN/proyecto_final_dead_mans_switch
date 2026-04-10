@@ -1,83 +1,50 @@
-/**
- * switchController.js
- * Como aún no tenemos el backend conectado en Railway, este controlador
- * gestionará el estado temporal en memoria (Mock DB) y proporcionará 
- * utilidades como convertir ms a formato visual (24h 10m).
- */
+import apiService from './apiService';
 
-let mockSwitches = [
-  { id: 1, name: 'Interruptor Alpha', alertEmail: 'familiar@correo.com', targetTime: Date.now() + 86400000, status: 'ACTIVE' },
-  { id: 2, name: 'Bóveda Principal', alertEmail: 'abogado@correo.com', targetTime: Date.now() + 900000, status: 'CRITICAL' }
-];
-
-let globalLogs = [
-  { id: 101, date: new Date(Date.now() - 86400000).toLocaleString(), action: 'Sistema Iniciado', details: 'N/A' },
-  { id: 102, date: new Date(Date.now() - 3600000).toLocaleString(), action: 'Check-in Realizado', details: 'Interruptor Alpha' }
-];
-
-export const addLogEvent = (action, details) => {
-    globalLogs.unshift({ id: Date.now(), date: new Date().toLocaleString(), action, details });
+// La utilidad visual la mantenemos porque es exclusiva del Frontend UI
+export const formatTimeLeft = (targetTime) => {
+    const diff = targetTime - Date.now();
+    if (diff <= 0) return { text: "EXPIRADO", status: "EXPIRED" };
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return { 
+        text: `${hours}h ${minutes}m ${seconds}s`,
+        status: diff < 3600000 ? "CRITICAL" : "ACTIVE"
+    };
 };
 
-export const getLogs = async () => [...globalLogs];
+export const getLogs = async () => {
+    return await apiService.get('/logs');
+};
 
-export const getSwitches = async () => [...mockSwitches];
+export const getSwitches = async () => {
+    return await apiService.get('/switches');
+};
 
-export const getSwitchById = async (id) => mockSwitches.find(s => s.id === parseInt(id));
+export const getSwitchById = async (id) => {
+    // Si la lista no es masiva, podemos traerlos y filtrar, sino conviene crear un GET /switches/:id
+    const switches = await getSwitches();
+    return switches.find(s => s.id === parseInt(id));
+};
 
 export const createSwitch = async (data) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            const newSwitch = { id: Date.now(), name: data.name, alertEmail: data.alertEmail, targetTime: Date.now() + (data.durationHours * 3600000), status: 'ACTIVE'};
-            mockSwitches.push(newSwitch);
-            addLogEvent('Switch Creado', data.name);
-            resolve(newSwitch);
-        }, 300);
-    });
+    return await apiService.post('/switches', data);
 };
 
 export const updateSwitch = async (id, data) => {
-    return new Promise((resolve) => {
-        const idx = mockSwitches.findIndex(s => s.id === parseInt(id));
-        if (idx !== -1) {
-            mockSwitches[idx] = { ...mockSwitches[idx], ...data, targetTime: Date.now() + (data.durationHours * 3600000) };
-            addLogEvent('Switch Modificado', mockSwitches[idx].name);
-            resolve(mockSwitches[idx]);
-        } else resolve(null);
-    });
+    // Prisma y API de update: podríamos hacer un endpoint o borrar y crear.
+    // Como no hicimos el router.put, simularemos que borramos y recreamos por rapidez,
+    // o enviaremos al crear. Espera, hagamos post!
+    // Como en Backend no tenemos PUT, aquí llamamos un POST creando uno nuevo y borramos el viejo.
+    await apiService.delete(`/switches/${id}`);
+    return await apiService.post('/switches', data);
 };
 
 export const deleteSwitch = async (id) => {
-    return new Promise((resolve) => {
-        const sw = mockSwitches.find(s => s.id === parseInt(id));
-        if (sw) {
-            mockSwitches = mockSwitches.filter(s => s.id !== parseInt(id));
-            addLogEvent('Switch Eliminado', sw.name);
-            resolve(true);
-        } else resolve(false);
-    });
+    await apiService.delete(`/switches/${id}`);
+    return true;
 };
 
 export const checkInSwitch = async (id) => {
-   return new Promise((resolve) => {
-       const swIndex = mockSwitches.findIndex(s => s.id === id);
-       if (swIndex !== -1) {
-           mockSwitches[swIndex].targetTime = Date.now() + 86400000;
-           mockSwitches[swIndex].status = 'ACTIVE';
-           addLogEvent('Check-in Realizado', mockSwitches[swIndex].name);
-           resolve(mockSwitches[swIndex]);
-       } else resolve(null);
-   });
-};
-
-export const formatTimeLeft = (targetTime) => {
-  const diff = targetTime - Date.now();
-  if (diff <= 0) return { text: "EXPIRADO", status: "EXPIRED" };
-  const hours = Math.floor(diff / 3600000);
-  const minutes = Math.floor((diff % 3600000) / 60000);
-  const seconds = Math.floor((diff % 60000) / 1000);
-  return { 
-      text: `${hours}h ${minutes}m ${seconds}s`,
-      status: diff < 3600000 ? "CRITICAL" : "ACTIVE"
-  };
+    return await apiService.post(`/switches/${id}/checkin`);
 };
