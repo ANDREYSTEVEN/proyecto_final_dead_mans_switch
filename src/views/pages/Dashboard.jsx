@@ -98,7 +98,10 @@ export default function Dashboard() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginRight: '10px' }} title={sw.alertEmail}>
-                    ✉ {sw.alertEmail}
+                    ✉ {sw.alertEmail}<br/>
+                    <span style={{color: 'var(--neon-green)', marginTop: '4px', display: 'inline-block'}}>
+                       {sw.vaultItems?.length > 0 ? `📦 ${sw.vaultItems.length} Secreto(s) Atado(s)` : '📦 Vacío'}
+                    </span>
                   </div>
                   <button 
                       className={`btn-neon ${timeData.status === 'ACTIVE' ? 'btn-neon-green' : 'btn-neon-red'}`} 

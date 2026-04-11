@@ -4,11 +4,17 @@ import apiService from './apiService';
 export const formatTimeLeft = (targetTime) => {
     const diff = targetTime - Date.now();
     if (diff <= 0) return { text: "EXPIRADO", status: "EXPIRED" };
-    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
+
+    let text = '';
+    if (days > 0) text += `${days}d `;
+    text += `${hours}h ${minutes}m ${seconds}s`;
+
     return { 
-        text: `${hours}h ${minutes}m ${seconds}s`,
+        text,
         status: diff < 3600000 ? "CRITICAL" : "ACTIVE"
     };
 };
