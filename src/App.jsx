@@ -11,6 +11,7 @@ import Settings from './views/pages/Settings';
 import Logs from './views/pages/Logs';
 import Analytics from './views/pages/Analytics';
 import Vault from './views/pages/Vault';
+import Decoder from './views/pages/Decoder';
 import { getCurrentUser, logoutUser } from './controllers/userController';
 
 function Navigation() {
@@ -73,6 +74,7 @@ function App() {
             <main className="main-content">
               <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/decoder" element={<Decoder />} />
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/create" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
                 <Route path="/edit/:id" element={<ProtectedRoute><CreateSwitch /></ProtectedRoute>} />
