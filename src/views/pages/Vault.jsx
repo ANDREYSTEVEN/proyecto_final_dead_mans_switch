@@ -13,6 +13,8 @@ export default function Vault() {
   const [keyInput, setKeyInput] = useState('');
 
   const [formData, setFormData] = useState({ title: '', content: '' });
+  const [visibleState, setVisibleState] = useState({});
+  const [promptKeys, setPromptKeys] = useState({});
 
   const loadItems = async () => {
     if (!isKeySet) return;
@@ -107,9 +109,6 @@ export default function Vault() {
           </div>
       );
   }
-
-  const [visibleState, setVisibleState] = useState({});
-  const [promptKeys, setPromptKeys] = useState({});
 
   const handleVisibilityClick = (id) => {
       if (visibleState[id] === 'visible') {
