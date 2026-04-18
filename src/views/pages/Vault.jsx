@@ -54,7 +54,10 @@ export default function Vault() {
   const handleClearKey = () => {
       sessionStorage.removeItem('masterKey');
       setMasterKey('');
+      setKeyInput('');      // Limpiar texto digitado
       setIsKeySet(false);
+      setVisibleState({});  // Volver a nublar todas las cartas (amnesia total)
+      setPromptKeys({});    // Limpiar claves ingresadas en tarjetas
       setItems([]);
   };
 
