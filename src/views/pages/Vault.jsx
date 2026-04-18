@@ -108,6 +108,26 @@ export default function Vault() {
       );
   }
 
+  const [visibleState, setVisibleState] = useState({});
+  const [promptKeys, setPromptKeys] = useState({});
+
+  const handleVisibilityClick = (id) => {
+      if (visibleState[id] === 'visible') {
+          setVisibleState({...visibleState, [id]: 'blurred'});
+      } else {
+          setVisibleState({...visibleState, [id]: 'prompt'});
+      }
+  };
+
+  const handleRevealAttempt = (id) => {
+      if (promptKeys[id] === masterKey) {
+          setVisibleState({...visibleState, [id]: 'visible'});
+      } else {
+          addToast('Firma Incorrecta. Protección Mantenida.', 'error');
+      }
+      setPromptKeys({...promptKeys, [id]: ''});
+  };
+
   return (
     <div key="unlocked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -151,28 +171,60 @@ export default function Vault() {
           </form>
       </div>
 
-      <h2 style={{ fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>Reservas Cifradas Actuales</h2>
+      <h2 style={{ fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>Reservas Cifradas Actuales (Difuminadas)</h2>
       
       {loading ? (
-          <p>⏳ Desencriptando bóveda...</p>
+          <p>⏳ Cargando bloques...</p>
       ) : items.length === 0 ? (
           <div className="glass-panel" style={{ textAlign: 'center', opacity: 0.6 }}>
               <p>Tu bóveda está vacía u oculta.</p>
           </div>
       ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-              {items.map(item => (
-                  <div key={item.id} className="glass-panel" style={{ display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'linear-gradient(to bottom, var(--neon-red), transparent)' }}></div>
-                      <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: 'white' }}>{item.title}</h3>
-                      <p style={{ color: item.content.includes("Error") || item.content.includes("corrupto") ? '#ef4444' : '#aaa', fontSize: '14px', flexGrow: 1, whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: '0 0 15px 0' }}>
-                          {item.content}
-                      </p>
-                      <button onClick={() => handleDelete(item.id)} style={{ alignSelf: 'flex-start', background: 'none', border: '1px solid rgba(255,0,0,0.5)', color: '#ef4444', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.background = 'rgba(255,0,0,0.2)'; e.target.style.boxShadow = '0 0 10px red'; }} onMouseOut={(e) => { e.target.style.background = 'none'; e.target.style.boxShadow = 'none'; }}>
-                          Destruir
-                      </button>
-                  </div>
-              ))}
+              {items.map(item => {
+                  const state = visibleState[item.id] || 'blurred';
+                  const isVisible = state === 'visible';
+                  const isPrompting = state === 'prompt';
+
+                  return (
+                    <div key={item.id} className="glass-panel" style={{ display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'linear-gradient(to bottom, var(--neon-red), transparent)' }}></div>
+                        <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
+                            {item.title}
+                            <button onClick={() => handleVisibilityClick(item.id)} style={{ background: 'none', border: 'none', color: 'var(--neon-blue)', cursor: 'pointer' }}>
+                                {isVisible ? '👁️ Ocultar' : '👁️ Visualizar'}
+                            </button>
+                        </h3>
+
+                        {isPrompting ? (
+                             <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px', marginBottom: '15px' }}>
+                                 <input 
+                                     type="password" 
+                                     placeholder="Repite Clave Maestra" 
+                                     value={promptKeys[item.id] || ''}
+                                     onChange={(e) => setPromptKeys({...promptKeys, [item.id]: e.target.value})}
+                                     style={{ padding: '8px', background: 'rgba(0,0,0,0.8)', border: '1px solid var(--neon-blue)', color: 'white', borderRadius: '4px', textAlign: 'center' }} 
+                                 />
+                                 <button onClick={() => handleRevealAttempt(item.id)} style={{ background: 'var(--neon-blue)', color: 'black', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Validar</button>
+                             </div>
+                        ) : (
+                            <p style={{ 
+                                color: item.content.includes("Error") || item.content.includes("corrupto") ? '#ef4444' : '#aaa', 
+                                fontSize: '14px', flexGrow: 1, whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: '0 0 15px 0',
+                                filter: isVisible ? 'none' : 'blur(5px)',
+                                userSelect: isVisible ? 'auto' : 'none',
+                                transition: 'filter 0.3s ease'
+                            }}>
+                                {item.content}
+                            </p>
+                        )}
+                        
+                        <button onClick={() => handleDelete(item.id)} style={{ alignSelf: 'flex-start', background: 'none', border: '1px solid rgba(255,0,0,0.5)', color: '#ef4444', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={(e) => { e.target.style.background = 'rgba(255,0,0,0.2)'; e.target.style.boxShadow = '0 0 10px red'; }} onMouseOut={(e) => { e.target.style.background = 'none'; e.target.style.boxShadow = 'none'; }}>
+                            Destruir Permanentemente
+                        </button>
+                    </div>
+                  );
+              })}
           </div>
       )}
     </div>
