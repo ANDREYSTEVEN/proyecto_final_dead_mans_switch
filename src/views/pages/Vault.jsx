@@ -207,7 +207,10 @@ export default function Vault() {
                                      onChange={(e) => setPromptKeys({...promptKeys, [item.id]: e.target.value})}
                                      style={{ padding: '8px', background: 'rgba(0,0,0,0.8)', border: '1px solid var(--neon-blue)', color: 'white', borderRadius: '4px', textAlign: 'center' }} 
                                  />
-                                 <button onClick={() => handleRevealAttempt(item.id)} style={{ background: 'var(--neon-blue)', color: 'black', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Validar</button>
+                                 <div style={{ display: 'flex', gap: '10px' }}>
+                                     <button onClick={() => handleRevealAttempt(item.id)} style={{ flex: 1, background: 'var(--neon-blue)', color: 'black', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Validar</button>
+                                     <button onClick={() => setVisibleState({...visibleState, [item.id]: 'blurred'})} style={{ flex: 1, background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+                                 </div>
                              </div>
                         ) : (
                             <p style={{ 

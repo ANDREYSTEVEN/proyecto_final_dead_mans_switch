@@ -12,6 +12,7 @@ import Logs from './views/pages/Logs';
 import Analytics from './views/pages/Analytics';
 import Vault from './views/pages/Vault';
 import Decoder from './views/pages/Decoder';
+import SecurityQuestions from './views/pages/SecurityQuestions';
 import { getCurrentUser, logoutUser } from './controllers/userController';
 
 function Navigation() {
@@ -47,7 +48,8 @@ function Navigation() {
             <Link to="/" className="sidebar-link" onClick={() => setMenuOpen(false)}>🎛 Dashboard</Link>
             <Link to="/logs" className="sidebar-link" onClick={() => setMenuOpen(false)}>📋 Auditoría</Link>
             <Link to="/analytics" className="sidebar-link" onClick={() => setMenuOpen(false)}>📈 Analíticas</Link>
-            <Link to="/vault" className="sidebar-link" onClick={() => setMenuOpen(false)}>🔐 Bóveda de Datos</Link>
+            <Link to="/vault" className="sidebar-link" onClick={() => setMenuOpen(false)}>🔐 Archivos Ultra-Secretos</Link>
+            <Link to="/sq" className="sidebar-link" onClick={() => setMenuOpen(false)}>🛡️ Control de Acceso 2FA</Link>
             <Link to="/settings" className="sidebar-link" onClick={() => setMenuOpen(false)}>⚙️ Configuración</Link>
             <div style={{flexGrow: 1}}></div>
             <button onClick={handleLogout} className="btn-neon btn-neon-red" style={{marginTop: 'auto'}}>Salir</button>
@@ -81,6 +83,7 @@ function App() {
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
                 <Route path="/vault" element={<ProtectedRoute><Vault /></ProtectedRoute>} />
+                <Route path="/sq" element={<ProtectedRoute><SecurityQuestions /></ProtectedRoute>} />
                 <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
               </Routes>
             </main>

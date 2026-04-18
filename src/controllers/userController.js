@@ -14,18 +14,48 @@ export const registerUser = async (email, password) => {
 export const loginUser = async (email, password) => {
     const data = await apiService.post('/auth/login', { email, password });
     
-    // El backend nos retorna { token, user }
-    const sessionData = { 
-        user: data.user, 
-        token: data.token,
-        generatedAt: Date.now()
-    };
-    
-    localStorage.setItem('dms_session', JSON.stringify(sessionData));
-    return sessionData;
+    if (data.step === 'SUCCESS') {
+        const sessionData = { 
+            user: data.user, 
+            token: data.token,
+            generatedAt: Date.now()
+        };
+        localStorage.setItem('dms_session', JSON.stringify(sessionData));
+    }
+    return data; // Puede retornar { step: '2FA', tempToken, question }
+};
+
+export const verify2FAUser = async (tempToken, answer) => {
+    const data = await apiService.post('/auth/verify-2fa', { tempToken, answer });
+    if (data.step === 'SUCCESS') {
+        const sessionData = { 
+            user: data.user, 
+            token: data.token,
+            generatedAt: Date.now()
+        };
+        localStorage.setItem('dms_session', JSON.stringify(sessionData));
+    }
+    return data;
 };
 
 // Cerrar sesión
+// Cerrar sesión
 export const logoutUser = () => {
     localStorage.removeItem('dms_session');
+};
+
+export const getSecurityQuestions = async () => {
+    return await apiService.get('/security-questions');
+};
+
+export const addSecurityQuestion = async (question, answer) => {
+    return await apiService.post('/security-questions', { question, answer });
+};
+
+export const deleteSecurityQuestion = async (id) => {
+    return await apiService.delete(`/security-questions/${id}`);
+};
+
+export const verifySystemPassword = async (password) => {
+    return await apiService.post('/auth/verify-password', { password });
 };
