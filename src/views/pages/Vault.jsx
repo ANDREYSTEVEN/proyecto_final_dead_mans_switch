@@ -86,7 +86,7 @@ export default function Vault() {
 
   if (!isKeySet) {
       return (
-          <div className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+          <div key="locked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
               <div style={{ textAlign: 'center', marginTop: '50px' }}>
                   <h1 style={{ color: 'var(--neon-red)' }}>🔐 Bóveda de Acceso Restringido</h1>
                   <p style={{ color: '#aaa', marginBottom: '30px' }}>Ingresa tu Clave Maestra de Ciberseguridad. Esta llave se usa para triturar los secretos en tu computadora antes de enviarlos a los servidores.</p>
@@ -109,7 +109,7 @@ export default function Vault() {
   }
 
   return (
-    <div className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+    <div key="unlocked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '28px' }}>🔐</span> Bóveda de Divulgación
