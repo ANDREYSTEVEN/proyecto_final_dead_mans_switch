@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { ToastProvider, useToast } from './views/components/ToastContext';
 import ProtectedRoute from './views/components/ProtectedRoute';
 import ErrorBoundaryPanel from './views/components/ErrorBoundaryPanel';
