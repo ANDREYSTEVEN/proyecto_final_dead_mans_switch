@@ -8,70 +8,46 @@ export default function Vault() {
   const [loading, setLoading] = useState(false);
   const addToast = useToast();
 
-  const [masterKey, setMasterKey] = useState(sessionStorage.getItem('masterKey') || '');
-  const [isKeySet, setIsKeySet] = useState(!!sessionStorage.getItem('masterKey'));
-  const [keyInput, setKeyInput] = useState('');
-
-  const [formData, setFormData] = useState({ title: '', content: '' });
+  const [formData, setFormData] = useState({ title: '', content: '', pin: '' });
   const [visibleState, setVisibleState] = useState({});
   const [promptKeys, setPromptKeys] = useState({});
+  const [decryptedContents, setDecryptedContents] = useState({});
 
   const loadItems = async () => {
-    if (!isKeySet) return;
     setLoading(true);
     try {
       const data = await getVaultItems();
-      const decryptedData = data.map(item => {
-          try {
-              const bytes = CryptoJS.AES.decrypt(item.content, masterKey);
-              const originalText = bytes.toString(CryptoJS.enc.Utf8);
-              return { ...item, content: originalText || "⚠️[Cifrado con otra llave o corrupto]" };
-          } catch (e) {
-              return { ...item, content: "⚠️[Error de Descifrado: Llave Inválida]" };
-          }
-      });
-      setItems(decryptedData);
+      setItems(data);
     } catch (e) {
       addToast(e.message, 'error');
     }
     setLoading(false);
   };
 
+  // Efecto que se corre siempre al montar. ¡No hay sessionStorage, la data sensible se borra al navegar!
   useEffect(() => {
     loadItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isKeySet]);
-
-  const handleSetKey = (e) => {
-      e.preventDefault();
-      if (!keyInput.trim()) return;
-      sessionStorage.setItem('masterKey', keyInput);
-      setMasterKey(keyInput);
-      setIsKeySet(true);
-      addToast('Llave Sesión Establecida', 'success');
-  };
-
-  const handleClearKey = () => {
-      sessionStorage.removeItem('masterKey');
-      setMasterKey('');
-      setKeyInput('');      // Limpiar texto digitado
-      setIsKeySet(false);
-      setVisibleState({});  // Volver a nublar todas las cartas (amnesia total)
-      setPromptKeys({});    // Limpiar claves ingresadas en tarjetas
-      setItems([]);
-  };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.content) return;
+    if (!formData.title || !formData.content) {
+        addToast('Faltan datos por inyectar.', 'error');
+        return;
+    }
+    if (!formData.pin) {
+        addToast('Agrega un PIN específico a este paquete para encriptarlo.', 'error');
+        return;
+    }
     
-    // Client-side AES Zero-Knowledge Encryption
-    const cipherText = CryptoJS.AES.encrypt(formData.content, masterKey).toString();
+    // Client-side AES Zero-Knowledge Encryption INDIVIDUAL Por PIN
+    const cipherText = CryptoJS.AES.encrypt(formData.content, formData.pin).toString();
 
     try {
         await createVaultItem({ title: formData.title, content: cipherText });
         addToast('Dato Criptográfico Almacenado Seguramente', 'success');
-        setFormData({ title: '', content: '' });
+        setFormData({ title: '', content: '', pin: '' });
         loadItems();
     } catch (e) {
         addToast(e.message, 'error');
@@ -83,65 +59,71 @@ export default function Vault() {
     try {
         await deleteVaultItem(id);
         addToast('Registro incinerado', 'success');
+        
+        // Limpiar RAM
+        const newDecrypted = { ...decryptedContents };
+        delete newDecrypted[id];
+        setDecryptedContents(newDecrypted);
+        
         loadItems();
     } catch (e) {
         addToast(e.message, 'error');
     }
   };
 
-  if (!isKeySet) {
-      return (
-          <div key="locked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
-              <div style={{ textAlign: 'center', marginTop: '50px' }}>
-                  <h1 style={{ color: 'var(--neon-red)' }}>🔐 Bóveda de Acceso Restringido</h1>
-                  <p style={{ color: '#aaa', marginBottom: '30px' }}>Ingresa tu Clave Maestra de Ciberseguridad. Esta llave se usa para triturar los secretos en tu computadora antes de enviarlos a los servidores.</p>
-                  
-                  <form onSubmit={handleSetKey} style={{ maxWidth: '400px', margin: '0 auto' }}>
-                      <input 
-                          type="password" 
-                          value={keyInput}
-                          onChange={(e) => setKeyInput(e.target.value)}
-                          placeholder="Tu Super Llave Maestra..."
-                          style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid var(--neon-red)', background: 'rgba(0,0,0,0.8)', color: 'white', marginBottom: '20px', textAlign: 'center', letterSpacing: '2px' }}
-                      />
-                      <button className="btn-neon" style={{ width: '100%', borderColor: 'var(--neon-red)', color: 'var(--neon-red)' }}>
-                          Desbloquear Memoria de Sesión
-                      </button>
-                  </form>
-              </div>
-          </div>
-      );
-  }
-
   const handleVisibilityClick = (id) => {
       if (visibleState[id] === 'visible') {
+          // Si lo opaca, borramos de RAM inmediatamente
+          const newDecrypted = { ...decryptedContents };
+          delete newDecrypted[id];
+          setDecryptedContents(newDecrypted);
           setVisibleState({...visibleState, [id]: 'blurred'});
       } else {
           setVisibleState({...visibleState, [id]: 'prompt'});
       }
   };
 
-  const handleRevealAttempt = (id) => {
-      if (promptKeys[id] === masterKey) {
-          setVisibleState({...visibleState, [id]: 'visible'});
-      } else {
+  const handleRevealAttempt = (item) => {
+      const id = item.id;
+      const attemptPin = promptKeys[id];
+      if (!attemptPin) return;
+
+      try {
+          const bytes = CryptoJS.AES.decrypt(item.content, attemptPin);
+          const originalText = bytes.toString(CryptoJS.enc.Utf8);
+          
+          if (originalText) {
+              setDecryptedContents({...decryptedContents, [id]: originalText});
+              setVisibleState({...visibleState, [id]: 'visible'});
+              addToast('Firma Validada. Revelando RAM local.', 'success');
+          } else {
+              throw new Error("Malformed UTF8");
+          }
+      } catch (e) {
           addToast('Firma Incorrecta. Protección Mantenida.', 'error');
       }
-      setPromptKeys({...promptKeys, [id]: ''});
+      setPromptKeys({...promptKeys, [id]: ''}); // Reset attempt
+  };
+
+  const handleClearKey = () => {
+      setVisibleState({});
+      setPromptKeys({});
+      setDecryptedContents({}); // Amnesia absoluta en RAM
+      addToast('RAM Depurada. Todo asegurado.', 'info');
   };
 
   return (
     <div key="unlocked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <h1 style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '28px' }}>🔐</span> Bóveda de Divulgación
+              <span style={{ fontSize: '28px' }}>🔐</span> Archivos Ultra-Secretos
           </h1>
           <button onClick={handleClearKey} style={{ background: 'transparent', border: '1px solid #555', color: '#aaa', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>
-              Bloquear y Salir
+              Bloquear Vista de Inmediato
           </button>
       </div>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>
-          Tus datos súper secretos (Glosarios, Carteras, Contraseñas, Testamentos). La llave maestra actual aislará todo bajo cifrado AES-256 GCM.
+          Tus datos súper secretos. Esta arquitectura AES no utiliza una clave maestra. Asigna un PIN Destructor único por cada caja para la máxima separación. Si cambias de pestaña, la RAM local incinerará los descifrados.
       </p>
 
       <div className="glass-panel" style={{ marginBottom: '40px', borderLeft: '4px solid var(--neon-red)' }}>
@@ -155,6 +137,16 @@ export default function Vault() {
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
                       placeholder="Ej: Acceso a Bóveda Crypto o Testamento Familiar" 
                       style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,100,100,0.3)', background: 'rgba(0,0,0,0.6)', color: 'white' }}
+                  />
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>PIN Infranqueable (Específico al paquete)</label>
+                  <input 
+                      type="password" 
+                      value={formData.pin} 
+                      onChange={(e) => setFormData({...formData, pin: e.target.value})}
+                      placeholder="Este PIN será necesario para abrir SOLO este paquete" 
+                      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--neon-blue)', background: 'rgba(0,0,0,0.6)', color: 'white' }}
                   />
               </div>
               <div style={{ marginBottom: '20px' }}>
@@ -173,10 +165,10 @@ export default function Vault() {
           </form>
       </div>
 
-      <h2 style={{ fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>Reservas Cifradas Actuales (Difuminadas)</h2>
+      <h2 style={{ fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>Cajas Fuertes Actuales (Blindadas)</h2>
       
       {loading ? (
-          <p>⏳ Cargando bloques...</p>
+          <p>⏳ Escaneando bases de datos en la nube...</p>
       ) : items.length === 0 ? (
           <div className="glass-panel" style={{ textAlign: 'center', opacity: 0.6 }}>
               <p>Tu bóveda está vacía u oculta.</p>
@@ -187,6 +179,7 @@ export default function Vault() {
                   const state = visibleState[item.id] || 'blurred';
                   const isVisible = state === 'visible';
                   const isPrompting = state === 'prompt';
+                  const decryptedText = decryptedContents[item.id];
 
                   return (
                     <div key={item.id} className="glass-panel" style={{ display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
@@ -194,7 +187,7 @@ export default function Vault() {
                         <h3 style={{ margin: '0 0 10px 0', fontSize: '18px', color: 'white', display: 'flex', justifyContent: 'space-between' }}>
                             {item.title}
                             <button onClick={() => handleVisibilityClick(item.id)} style={{ background: 'none', border: 'none', color: 'var(--neon-blue)', cursor: 'pointer' }}>
-                                {isVisible ? '👁️ Ocultar' : '👁️ Visualizar'}
+                                {isVisible ? '👁️ Bloquear Inmediato' : '🔑 Descifrar Paquete'}
                             </button>
                         </h3>
 
@@ -202,25 +195,26 @@ export default function Vault() {
                              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '10px', marginBottom: '15px' }}>
                                  <input 
                                      type="password" 
-                                     placeholder="Repite Clave Maestra" 
+                                     placeholder="Ingresa PIN del Paquete" 
                                      value={promptKeys[item.id] || ''}
                                      onChange={(e) => setPromptKeys({...promptKeys, [item.id]: e.target.value})}
                                      style={{ padding: '8px', background: 'rgba(0,0,0,0.8)', border: '1px solid var(--neon-blue)', color: 'white', borderRadius: '4px', textAlign: 'center' }} 
                                  />
                                  <div style={{ display: 'flex', gap: '10px' }}>
-                                     <button onClick={() => handleRevealAttempt(item.id)} style={{ flex: 1, background: 'var(--neon-blue)', color: 'black', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Validar</button>
-                                     <button onClick={() => setVisibleState({...visibleState, [item.id]: 'blurred'})} style={{ flex: 1, background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+                                     <button onClick={() => handleRevealAttempt(item)} style={{ flex: 1, background: 'var(--neon-blue)', color: 'black', border: 'none', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Validar</button>
+                                     <button onClick={() => handleVisibilityClick(item.id)} style={{ flex: 1, background: 'transparent', color: '#ef4444', border: '1px solid #ef4444', padding: '8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
                                  </div>
                              </div>
                         ) : (
                             <p style={{ 
-                                color: item.content.includes("Error") || item.content.includes("corrupto") ? '#ef4444' : '#aaa', 
+                                color: isVisible ? '#fff' : '#ef4444', 
                                 fontSize: '14px', flexGrow: 1, whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: '0 0 15px 0',
                                 filter: isVisible ? 'none' : 'blur(5px)',
                                 userSelect: isVisible ? 'auto' : 'none',
-                                transition: 'filter 0.3s ease'
+                                transition: 'filter 0.3s ease',
+                                wordBreak: 'break-all'
                             }}>
-                                {item.content}
+                                {isVisible ? decryptedText : item.content}
                             </p>
                         )}
                         
