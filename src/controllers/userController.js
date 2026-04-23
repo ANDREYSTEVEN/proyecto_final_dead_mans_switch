@@ -25,8 +25,8 @@ export const loginUser = async (email, password) => {
     return data; // Puede retornar { step: '2FA', tempToken, question }
 };
 
-export const verify2FAUser = async (tempToken, answer) => {
-    const data = await apiService.post('/auth/verify-2fa', { tempToken, answer });
+export const verify2FAUser = async (tempToken, answers) => {
+    const data = await apiService.post('/auth/verify-2fa', { tempToken, answers });
     if (data.step === 'SUCCESS') {
         const sessionData = { 
             user: data.user, 

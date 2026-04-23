@@ -13,16 +13,16 @@ export default function Login() {
 
   const [step, setStep] = useState('AUTH');
   const [tempToken, setTempToken] = useState('');
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [questions, setQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
         if (step === '2FA') {
-            await verify2FAUser(tempToken, answer);
-            addToast(`Verificación de Coerción Superada.`, 'success');
+            await verify2FAUser(tempToken, answers);
+            addToast(`Verificación de Coerción Múltiple Superada.`, 'success');
             navigate('/');
         } else if (isRegisterMode) {
             await registerUser(formData.email, formData.password);
@@ -33,8 +33,8 @@ export default function Login() {
             if (data.step === '2FA') {
                 setStep('2FA');
                 setTempToken(data.tempToken);
-                setQuestion(data.question);
-                addToast('Contraseña Correcta. Resuelve el desafío.', 'info');
+                setQuestions(data.questions);
+                addToast('Contraseña Correcta. Resuelve la barrera de seguridad múltiple.', 'info');
             } else {
                 addToast(`Bienvenido/a, acceso asegurado.`, 'success');
                 navigate('/');
@@ -65,17 +65,21 @@ export default function Login() {
         
         <form onSubmit={handleSubmit}>
           {step === '2FA' ? (
-              <div style={{ marginBottom: '2rem' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: 'var(--neon-red)' }}>Pregunta Aleatoria:</label>
-                  <p style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: 'white', fontStyle: 'italic' }}>"{question}"</p>
-                  <input 
-                    type="password" 
-                    required
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Tu Respuesta Confidencial..."
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--neon-red)', background: 'rgba(50,0,0,0.3)', color: 'white' }} 
-                  />
+              <div style={{ marginBottom: '1.5rem' }}>
+                  {questions.map((q, index) => (
+                      <div key={q.id} style={{ marginBottom: '20px' }}>
+                          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: 'var(--neon-red)' }}>Pregunta Aleatoria #{index + 1}:</label>
+                          <p style={{ margin: '0 0 10px 0', fontSize: '1rem', color: 'white', fontStyle: 'italic' }}>"{q.question}"</p>
+                          <input 
+                              type="password" 
+                              required
+                              value={answers[q.id] || ''}
+                              onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
+                              placeholder="Tu Respuesta Aquí..."
+                              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--neon-red)', background: 'rgba(50,0,0,0.3)', color: 'white' }} 
+                          />
+                      </div>
+                  ))}
               </div>
           ) : (
               <>
