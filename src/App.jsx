@@ -24,6 +24,7 @@ function Navigation() {
   const handleLogout = () => {
     logoutUser();
     addToast("Sesión terminada.", "error");
+    setMenuOpen(false);
     navigate('/login');
   };
 
