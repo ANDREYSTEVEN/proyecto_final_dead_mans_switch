@@ -59,3 +59,11 @@ export const deleteSecurityQuestion = async (id) => {
 export const verifySystemPassword = async (password) => {
     return await apiService.post('/auth/verify-password', { password });
 };
+
+export const updatePassword = async (currentPassword, newPassword) => {
+    return await apiService.post('/auth/update-password', { currentPassword, newPassword });
+};
+
+export const destroySessions = async () => {
+    return await apiService.post('/auth/destroy-sessions');
+};

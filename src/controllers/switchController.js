@@ -58,3 +58,7 @@ export const deleteSwitch = async (id) => {
 export const checkInSwitch = async (id) => {
     return await apiService.post(`/switches/${id}/checkin`);
 };
+
+export const broadcastAllSwitches = async () => {
+    return await apiService.post('/switches/broadcast-all');
+};
