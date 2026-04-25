@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getVaultItems, createVaultItem, deleteVaultItem } from '../../controllers/vaultController';
+import { verifySystemPassword } from '../../controllers/userController';
 import { useToast } from '../components/ToastContext';
 import CryptoJS from 'crypto-js';
 
@@ -12,6 +13,8 @@ export default function Vault() {
   const [visibleState, setVisibleState] = useState({});
   const [promptKeys, setPromptKeys] = useState({});
   const [decryptedContents, setDecryptedContents] = useState({});
+  const [isKeySet, setIsKeySet] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
 
   const loadItems = async () => {
     setLoading(true);
@@ -24,11 +27,13 @@ export default function Vault() {
     setLoading(false);
   };
 
-  // Efecto que se corre siempre al montar. ¡No hay sessionStorage, la data sensible se borra al navegar!
+  // Efecto que se corre al desbloquear
   useEffect(() => {
-    loadItems();
+    if (isKeySet) {
+        loadItems();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isKeySet]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,8 +114,46 @@ export default function Vault() {
       setVisibleState({});
       setPromptKeys({});
       setDecryptedContents({}); // Amnesia absoluta en RAM
-      addToast('RAM Depurada. Todo asegurado.', 'info');
+      setIsKeySet(false);
+      setKeyInput('');
+      setItems([]);
+      addToast('RAM Depurada. Bóveda Bloqueada.', 'info');
   };
+
+  const handleSetKey = async (e) => {
+      e.preventDefault();
+      try {
+          await verifySystemPassword(keyInput);
+          setIsKeySet(true);
+          addToast("Autorización Concedida. Entrando a Bóveda.", "success");
+      } catch (e) {
+          addToast(e.message || "Contraseña rechazada.", "error");
+      }
+  };
+
+  if (!isKeySet) {
+      return (
+          <div key="locked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>
+              <div style={{ textAlign: 'center', marginTop: '50px' }}>
+                  <h1 style={{ color: 'var(--neon-red)' }}>🔐 Búnker de Archivos Ultra-Secretos</h1>
+                  <p style={{ color: '#aaa', marginBottom: '30px' }}>Por seguridad, ingresa tu Contraseña Actual de Sistema para acceder a las cajas de la Bóveda.</p>
+                  
+                  <form onSubmit={handleSetKey} style={{ maxWidth: '400px', margin: '0 auto' }}>
+                      <input 
+                          type="password" 
+                          value={keyInput}
+                          onChange={(e) => setKeyInput(e.target.value)}
+                          placeholder="Contraseña Actual de Sistema..."
+                          style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid var(--neon-red)', background: 'rgba(0,0,0,0.8)', color: 'white', marginBottom: '20px', textAlign: 'center', letterSpacing: '2px' }}
+                      />
+                      <button className="btn-neon" style={{ width: '100%', borderColor: 'var(--neon-red)', color: 'var(--neon-red)' }}>
+                          Desbloquear Interfaz Visual
+                      </button>
+                  </form>
+              </div>
+          </div>
+      );
+  }
 
   return (
     <div key="unlocked-vault" className="section-container" style={{ animation: 'fadeIn 0.5s ease-out' }}>

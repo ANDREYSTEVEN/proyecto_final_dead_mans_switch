@@ -23,6 +23,10 @@ export const getLogs = async () => {
     return await apiService.get('/logs');
 };
 
+export const getAnalyticsData = async () => {
+    return await apiService.get('/analytics');
+};
+
 export const getSwitches = async () => {
     return await apiService.get('/switches');
 };
